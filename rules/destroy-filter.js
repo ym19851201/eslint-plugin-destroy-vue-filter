@@ -17,9 +17,19 @@ const traverse = (context, node) => {
     return;
   }
 
-  const filters = expression.filters.map(f => `$options.filters.${f.callee.name}`);
+  const filters = expression.filters;
   const result = filters.reduce((acc, f) => {
-    return `${f}(${acc})`;
+    const callee = `$options.filters.${f.callee.name}`;
+    const args = f.arguments.map(a => {
+      if (a.type === 'Literal') {
+        return a.raw;
+      } else if (a.type === 'Identifier') {
+        return a.name;
+      }
+    });
+
+    return args.length === 0 ? `${callee}(${acc})` 
+      : `${callee}(${acc}, ${args.join(', ')})`;
   }, expression.expression.name);
 
   context.report({ 

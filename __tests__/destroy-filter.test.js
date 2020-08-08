@@ -35,6 +35,7 @@ const valid = [
   },
 ];
 
+const errors = [{ message: "Vue2 style filters are deprecated" }];
 const invalid = [
   {
     code: `
@@ -46,7 +47,7 @@ const invalid = [
   export default Vue.extend({});
   </script>
   `,
-    errors: [{ message: "Vue2 style filters are deprecated" }],
+    errors,
     output: `
   <template>
     <div>{{ $options.filters.filterB($options.filters.filterA(xxxx)) }}</div>
@@ -56,7 +57,28 @@ const invalid = [
   export default Vue.extend({});
   </script>
   `
-  }
+  },
+  {
+    code: `
+  <template>
+    <div>{{ xxxx | filterA('arg1', arg2) }}</div>
+  </template>
+  <script>
+  import Vue from 'vue';
+  export default Vue.extend({});
+  </script>
+  `,
+    errors,
+    output: `
+  <template>
+    <div>{{ $options.filters.filterA(xxxx, 'arg1', arg2) }}</div>
+  </template>
+  <script>
+  import Vue from 'vue';
+  export default Vue.extend({});
+  </script>
+  `
+  },
 ];
 
 ruleTester.run("destroy-filter", rule, { valid, invalid });
