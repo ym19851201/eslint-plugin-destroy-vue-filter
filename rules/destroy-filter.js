@@ -29,10 +29,13 @@ const traverse = (context, node) => {
   });
 };
 
-module.exports = context => {
-  return {
-    Program: node => {
-      traverse(context, node.templateBody);
-    },
-  };
-};
+module.exports = {
+  meta: { fixable: true, },
+  create(context) {
+    return {
+      Program: node => {
+        traverse(context, node.templateBody);
+      },
+    };
+  },
+}

@@ -7,13 +7,14 @@ module.exports = {
       "plugin:vue/essential",
 
 //        "@merpay/nuxt-typescript",
-      "plugin:prettier/recommended",
+//      "plugin:prettier/recommended",
 //      "prettier/vue,
     ],
     "parserOptions": {
-        "parser": "@typescript-eslint/parser",
+      "parser": "@typescript-eslint/parser",
     },
     "plugins": [
+//      'vue',
 //        "vue",
 //        "@typescript-eslint"
     ],
