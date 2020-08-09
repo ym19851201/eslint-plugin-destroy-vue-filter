@@ -7,19 +7,17 @@ const RuleTester = eslint.RuleTester;
 
 const parserOptions = {
   ecmaVersion: 11,
-//  parser: "@typescript-eslint/parser",
+  //  parser: "@typescript-eslint/parser",
   sourceType: "module"
 };
 
 const settings = {
   env: { browser: true, es2020: true },
-  parser: require.resolve('vue-eslint-parser'),
+  parser: require.resolve("vue-eslint-parser"),
   parserOptions,
-  plugins: ['vue'],
+  plugins: ["vue"]
 };
 const ruleTester = new RuleTester(settings);
-
-//const ruleTester = new RuleTester(config);
 
 const valid = [
   {
@@ -31,11 +29,12 @@ const valid = [
   import Vue from 'vue';
   export default Vue.extend({});
   </script>
-  `,
-  },
+  `
+  }
 ];
 
-const errors = [{ message: "Vue2 style filters are deprecated" }];
+const errors = (n = 1) =>
+  [...Array(n).keys()].map(() => ({ message: "Vue2 style filters are deprecated" }));
 
 const multiFilter = {
   code: `
@@ -47,7 +46,7 @@ const multiFilter = {
   export default Vue.extend({});
   </script>
   `,
-  errors,
+  errors: errors(),
   output: `
   <template>
     <div>{{ $options.filters.filterB($options.filters.filterA(xxxx)) }}</div>
@@ -57,7 +56,6 @@ const multiFilter = {
   export default Vue.extend({});
   </script>
   `
-
 };
 
 const filterWithArg = {
@@ -70,7 +68,7 @@ const filterWithArg = {
   export default Vue.extend({});
   </script>
   `,
-  errors,
+  errors: errors(),
   output: `
   <template>
     <div>{{ $options.filters.filterA(xxxx, 'arg1', arg2) }}</div>
@@ -92,7 +90,7 @@ const filterInAttr = {
   export default Vue.extend({});
   </script>
   `,
-  errors,
+  errors: errors(),
   output: `
   <template>
     <div v-bind:id="$options.filters.filter(rawId)" disabled :class="computedClass">{{ xxxx }}</div>
@@ -102,13 +100,46 @@ const filterInAttr = {
   export default Vue.extend({});
   </script>
   `
-
 };
 
-const invalid = [
-  multiFilter,
-  filterWithArg,
-  filterInAttr,
-];
+const deluxePattern = {
+  code: `
+  <template>
+    <div
+      v-bind:id="rawId | filterX | filterY"
+      disabled
+      :class="computedClass"
+      :key="rawKey | filterK"
+    >
+      {{ xxxx | filterA | filterB }}
+      <div>{{ yyyy | filterC(arg1, 'arg2') | filterD }}</div>
+    </div>
+  </template>
+  <script>
+  import Vue from 'vue';
+  export default Vue.extend({});
+  </script>
+  `,
+  errors: errors(4),
+  output: `
+  <template>
+    <div
+      v-bind:id="$options.filters.filterY($options.filters.filterX(rawId))"
+      disabled
+      :class="computedClass"
+      :key="$options.filters.filterK(rawKey)"
+    >
+      {{ $options.filters.filterB($options.filters.filterA(xxxx)) }}
+      <div>{{ $options.filters.filterD($options.filters.filterC(yyyy, arg1, 'arg2')) }}</div>
+    </div>
+  </template>
+  <script>
+  import Vue from 'vue';
+  export default Vue.extend({});
+  </script>
+  `
+};
+
+const invalid = [multiFilter, filterWithArg, filterInAttr, deluxePattern];
 
 ruleTester.run("destroy-filter", rule, { valid, invalid });

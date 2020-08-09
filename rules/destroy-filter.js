@@ -68,9 +68,9 @@ const traverseAttr = (context, node) => {
       const name = f.key.name;
       const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`
       const expression = f.value.expression;
-      const filter = transformFilter(expression);
+      const transformed = transformFilter(expression);
 
-      fix(context, f, `${bindName}:${boundArg}="${filter}"`);
+      fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
     });
   }
 
