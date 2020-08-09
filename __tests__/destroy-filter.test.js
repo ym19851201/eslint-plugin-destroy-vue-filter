@@ -7,7 +7,7 @@ const RuleTester = eslint.RuleTester;
 
 const parserOptions = {
   ecmaVersion: 11,
-  //  parser: "@typescript-eslint/parser",
+  parser: "@typescript-eslint/parser",
   sourceType: "module"
 };
 
@@ -115,9 +115,15 @@ const deluxePattern = {
       <div>{{ yyyy | filterC(arg1, 'arg2') | filterD }}</div>
     </div>
   </template>
-  <script>
+  <script lang="ts">
   import Vue from 'vue';
-  export default Vue.extend({});
+  export default Vue.extend({
+    computed: {
+      compute(): string{
+        return 'string';
+      },
+    },
+  });
   </script>
   `,
   errors: errors(4),
@@ -133,9 +139,15 @@ const deluxePattern = {
       <div>{{ $options.filters.filterD($options.filters.filterC(yyyy, arg1, 'arg2')) }}</div>
     </div>
   </template>
-  <script>
+  <script lang="ts">
   import Vue from 'vue';
-  export default Vue.extend({});
+  export default Vue.extend({
+    computed: {
+      compute(): string{
+        return 'string';
+      },
+    },
+  });
   </script>
   `
 };
