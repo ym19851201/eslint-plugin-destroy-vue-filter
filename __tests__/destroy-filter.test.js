@@ -36,9 +36,9 @@ const valid = [
 ];
 
 const errors = [{ message: "Vue2 style filters are deprecated" }];
-const invalid = [
-  {
-    code: `
+
+const multiFilter = {
+  code: `
   <template>
     <div>{{ xxxx | filterA | filterB }}</div>
   </template>
@@ -47,8 +47,8 @@ const invalid = [
   export default Vue.extend({});
   </script>
   `,
-    errors,
-    output: `
+  errors,
+  output: `
   <template>
     <div>{{ $options.filters.filterB($options.filters.filterA(xxxx)) }}</div>
   </template>
@@ -57,9 +57,11 @@ const invalid = [
   export default Vue.extend({});
   </script>
   `
-  },
-  {
-    code: `
+
+};
+
+const filterWithArg = {
+  code: `
   <template>
     <div>{{ xxxx | filterA('arg1', arg2) }}</div>
   </template>
@@ -68,8 +70,8 @@ const invalid = [
   export default Vue.extend({});
   </script>
   `,
-    errors,
-    output: `
+  errors,
+  output: `
   <template>
     <div>{{ $options.filters.filterA(xxxx, 'arg1', arg2) }}</div>
   </template>
@@ -78,7 +80,35 @@ const invalid = [
   export default Vue.extend({});
   </script>
   `
-  },
+};
+
+const filterInAttr = {
+  code: `
+  <template>
+    <div v-bind:id="rawId | filter">{{ xxxx }}</div>
+  </template>
+  <script>
+  import Vue from 'vue';
+  export default Vue.extend({});
+  </script>
+  `,
+  errors,
+  output: `
+  <template>
+    <div v-bind:id="$options.filters.filter(rawId)">{{ xxxx }}</div>
+  </template>
+  <script>
+  import Vue from 'vue';
+  export default Vue.extend({});
+  </script>
+  `
+
+};
+
+const invalid = [
+  multiFilter,
+  filterWithArg,
+  filterInAttr,
 ];
 
 ruleTester.run("destroy-filter", rule, { valid, invalid });
