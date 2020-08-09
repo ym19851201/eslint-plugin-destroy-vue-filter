@@ -85,7 +85,7 @@ const filterWithArg = {
 const filterInAttr = {
   code: `
   <template>
-    <div v-bind:id="rawId | filter">{{ xxxx }}</div>
+    <div v-bind:id="rawId | filter" disabled :class="computedClass">{{ xxxx }}</div>
   </template>
   <script>
   import Vue from 'vue';
@@ -95,7 +95,7 @@ const filterInAttr = {
   errors,
   output: `
   <template>
-    <div v-bind:id="$options.filters.filter(rawId)">{{ xxxx }}</div>
+    <div v-bind:id="$options.filters.filter(rawId)" disabled :class="computedClass">{{ xxxx }}</div>
   </template>
   <script>
   import Vue from 'vue';

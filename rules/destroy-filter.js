@@ -28,6 +28,7 @@ const fix = (context, node, result) => {
 }
 
 const traverseInner = (context, node) => {
+  if (!node) return;
   if (node.type !== 'VExpressionContainer') {
     node.children && node.children.forEach(c => traverseInner(context, c));
     return;
@@ -49,26 +50,29 @@ const traverseInner = (context, node) => {
 };
 
 const traverseAttr = (context, node) => {
-  if (node.type !== 'VElement') {
-    node.children && node.children.forEach(c => traverseAttr(context, c));
-    return;
+  if (!node) return;
+
+  if (node.type === 'VElement' && node.startTag) {
+    const filters = node.startTag.attributes.filter(attr => {
+      const { value } = attr;
+      if (!value) return false;
+
+      const { expression } = value;
+      if (!expression) return false;
+
+      return expression.type === 'VFilterSequenceExpression';
+    });
+
+    filters.forEach(f => {
+      const boundArg = f.key.argument.name;
+      const name = f.key.name;
+      const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`
+      const expression = f.value.expression;
+      const filter = transformFilter(expression);
+
+      fix(context, f, `${bindName}:${boundArg}="${filter}"`);
+    });
   }
-
-  const { attributes } = node.startTag;
-  attributes.forEach(attr => {
-    if (!attr.value) return;
-
-    const { expression } = attr.value;
-    if (!expression || expression.type !== 'VFilterSequenceExpression') {
-      return;
-    }
-    const name = attr.key.name;
-    const boundArg = attr.key.argument.name;
-    const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`
-
-    const transformed = transformFilter(expression);
-    fix(context, node.startTag, `<div ${bindName}:${boundArg}="${transformed}">`);
-  });
 
   node.children && node.children.forEach(c => traverseAttr(context, c));
 }
