@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const rule = require("../rules/collect-filter");
+const rule = require("../rules/collect/collect-filter");
 
 const eslint = require("eslint");
 const RuleTester = eslint.RuleTester;
