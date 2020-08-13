@@ -1,9 +1,11 @@
 "use strict";
 
 
+const filters = [];
+
 const transformFilter = (expression) => {
   const result = expression.filters.reduce((acc, f) => {
-    const callee = `$options.filters.${f.callee.name}`;
+    const callee = f.callee.name;
     const args = f.arguments.map(a => {
       if (a.type === 'Literal') {
         return a.raw;
@@ -45,6 +47,7 @@ const traverseInner = (context, node) => {
   }
 
   const transformed = transformFilter(expression);
+  expression.filters.forEach(f => filters.push(f.callee.name));
   fix(context, node, `{{ ${transformed} }}`);
   node.children && node.children.forEach(c => traverseInner(context, c));
 };
@@ -53,7 +56,7 @@ const traverseAttr = (context, node) => {
   if (!node) return;
 
   if (node.type === 'VElement' && node.startTag) {
-    const filters = node.startTag.attributes.filter(attr => {
+    const attrFilters = node.startTag.attributes.filter(attr => {
       const { value } = attr;
       if (!value) return false;
 
@@ -63,12 +66,13 @@ const traverseAttr = (context, node) => {
       return expression.type === 'VFilterSequenceExpression';
     });
 
-    filters.forEach(f => {
+    attrFilters.forEach(f => {
       const boundArg = f.key.argument.name;
       const name = f.key.name;
       const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`
       const expression = f.value.expression;
       const transformed = transformFilter(expression);
+      expression.filters.forEach(f => filters.push(f.callee.name));
 
       fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
     });
@@ -77,17 +81,38 @@ const traverseAttr = (context, node) => {
   node.children && node.children.forEach(c => traverseAttr(context, c));
 }
 
+const traverseImports = (context, node) => {
+  if (filters.length === 0) {
+    return;
+  }
+
+  const imports = node.body.filter(n => n.type === 'ImportDeclaration');
+  const last = imports[imports.length - 1];
+  const uniq = [...new Set(filters)].sort();
+  const source = context.options[0] || 'path/to/filters.ts';
+  const replace = `
+  import { ${uniq.join(', ')} } from '${source}';`;
+
+  context.report({ 
+    node,
+    message: "Vue2 style filters are deprecated",
+    fix: (fixer) => fixer.insertTextAfter(last, replace),
+  });
+}
+
 const traverse = (context, node) => {
-  traverseInner(context, node);
-  traverseAttr(context, node);
+  traverseInner(context, node.templateBody);
+  traverseAttr(context, node.templateBody);
+  traverseImports(context, node);
 }
 
 module.exports = {
   meta: { fixable: true, },
   create(context) {
+    filters.splice(0);
     return {
       Program: node => {
-        traverse(context, node.templateBody);
+        traverse(context, node);
       },
     };
   },

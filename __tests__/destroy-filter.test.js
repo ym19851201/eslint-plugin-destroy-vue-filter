@@ -46,13 +46,14 @@ const multiFilter = {
   export default Vue.extend({});
   </script>
   `,
-  errors: errors(),
+  errors: errors(2),
   output: `
   <template>
-    <div>{{ $options.filters.filterB($options.filters.filterA(xxxx)) }}</div>
+    <div>{{ filterB(filterA(xxxx)) }}</div>
   </template>
   <script>
   import Vue from 'vue';
+  import { filterA, filterB } from 'path/to/filters.ts';
   export default Vue.extend({});
   </script>
   `
@@ -68,13 +69,14 @@ const filterWithArg = {
   export default Vue.extend({});
   </script>
   `,
-  errors: errors(),
+  errors: errors(2),
   output: `
   <template>
-    <div>{{ $options.filters.filterA(xxxx, 'arg1', arg2) }}</div>
+    <div>{{ filterA(xxxx, 'arg1', arg2) }}</div>
   </template>
   <script>
   import Vue from 'vue';
+  import { filterA } from 'path/to/filters.ts';
   export default Vue.extend({});
   </script>
   `
@@ -90,13 +92,14 @@ const filterInAttr = {
   export default Vue.extend({});
   </script>
   `,
-  errors: errors(),
+  errors: errors(2),
   output: `
   <template>
-    <div v-bind:id="$options.filters.filter(rawId)" disabled :class="computedClass">{{ xxxx }}</div>
+    <div v-bind:id="filter(rawId)" disabled :class="computedClass">{{ xxxx }}</div>
   </template>
   <script>
   import Vue from 'vue';
+  import { filter } from 'path/to/filters.ts';
   export default Vue.extend({});
   </script>
   `
@@ -126,21 +129,22 @@ const deluxePattern = {
   });
   </script>
   `,
-  errors: errors(4),
+  errors: errors(5),
   output: `
   <template>
     <div
-      v-bind:id="$options.filters.filterY($options.filters.filterX(rawId))"
+      v-bind:id="filterY(filterX(rawId))"
       disabled
       :class="computedClass"
-      :key="$options.filters.filterK(rawKey)"
+      :key="filterK(rawKey)"
     >
-      {{ $options.filters.filterB($options.filters.filterA(xxxx)) }}
-      <div>{{ $options.filters.filterD($options.filters.filterC(yyyy, arg1, 'arg2')) }}</div>
+      {{ filterB(filterA(xxxx)) }}
+      <div>{{ filterD(filterC(yyyy, arg1, 'arg2')) }}</div>
     </div>
   </template>
   <script lang="ts">
   import Vue from 'vue';
+  import { filterA, filterB, filterC, filterD, filterK, filterX, filterY } from 'path/to/filters.ts';
   export default Vue.extend({
     computed: {
       compute(): string{
