@@ -1,0 +1,273 @@
+{
+  "type": "CallExpression",
+  "start": 17,
+  "end": 87,
+  "loc": {
+    "start": {
+      "line": 2,
+      "column": 6
+    },
+    "end": {
+      "line": 2,
+      "column": 76
+    }
+  },
+  "range": [17, 87],
+  "callee": {
+    "type": "MemberExpression",
+    "start": 17,
+    "end": 41,
+    "loc": {
+      "start": {
+        "line": 2,
+        "column": 6
+      },
+      "end": {
+        "line": 2,
+        "column": 30
+      }
+    },
+    "range": [17, 41],
+    "object": {
+      "type": "MemberExpression",
+      "start": 17,
+      "end": 33,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 6
+        },
+        "end": {
+          "line": 2,
+          "column": 22
+        }
+      },
+      "range": [17, 33],
+      "object": {
+        "type": "Identifier",
+        "start": 17,
+        "end": 25,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 6
+          },
+          "end": {
+            "line": 2,
+            "column": 14
+          }
+        },
+        "range": [17, 25],
+        "name": "$options",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.callee.object]"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 26,
+        "end": 33,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 15
+          },
+          "end": {
+            "line": 2,
+            "column": 22
+          }
+        },
+        "range": [26, 33],
+        "name": "filters",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.callee.object]"
+      },
+      "computed": false,
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression.callee]"
+    },
+    "property": {
+      "type": "Identifier",
+      "start": 34,
+      "end": 41,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 23
+        },
+        "end": {
+          "line": 2,
+          "column": 30
+        }
+      },
+      "range": [34, 41],
+      "name": "filterA",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression.callee]"
+    },
+    "computed": false,
+    "parent": "[Circular ~.templateBody.children.1.children.0.expression]"
+  },
+  "arguments": [
+    {
+      "type": "CallExpression",
+      "start": 42,
+      "end": 86,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 31
+        },
+        "end": {
+          "line": 2,
+          "column": 75
+        }
+      },
+      "range": [42, 86],
+      "callee": {
+        "type": "MemberExpression",
+        "start": 42,
+        "end": 66,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 31
+          },
+          "end": {
+            "line": 2,
+            "column": 55
+          }
+        },
+        "range": [42, 66],
+        "object": {
+          "type": "MemberExpression",
+          "start": 42,
+          "end": 58,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 31
+            },
+            "end": {
+              "line": 2,
+              "column": 47
+            }
+          },
+          "range": [42, 58],
+          "object": {
+            "type": "Identifier",
+            "start": 42,
+            "end": 50,
+            "loc": {
+              "start": {
+                "line": 2,
+                "column": 31
+              },
+              "end": {
+                "line": 2,
+                "column": 39
+              }
+            },
+            "range": [42, 50],
+            "name": "$options",
+            "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0.callee.object]"
+          },
+          "property": {
+            "type": "Identifier",
+            "start": 51,
+            "end": 58,
+            "loc": {
+              "start": {
+                "line": 2,
+                "column": 40
+              },
+              "end": {
+                "line": 2,
+                "column": 47
+              }
+            },
+            "range": [51, 58],
+            "name": "filters",
+            "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0.callee.object]"
+          },
+          "computed": false,
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0.callee]"
+        },
+        "property": {
+          "type": "Identifier",
+          "start": 59,
+          "end": 66,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 48
+            },
+            "end": {
+              "line": 2,
+              "column": 55
+            }
+          },
+          "range": [59, 66],
+          "name": "filterB",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0.callee]"
+        },
+        "computed": false,
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0]"
+      },
+      "arguments": [
+        {
+          "type": "Identifier",
+          "start": 67,
+          "end": 71,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 56
+            },
+            "end": {
+              "line": 2,
+              "column": 60
+            }
+          },
+          "range": [67, 71],
+          "name": "prop",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0]"
+        },
+        {
+          "type": "Identifier",
+          "start": 73,
+          "end": 77,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 62
+            },
+            "end": {
+              "line": 2,
+              "column": 66
+            }
+          },
+          "range": [73, 77],
+          "name": "arg1",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0]"
+        },
+        {
+          "type": "Literal",
+          "start": 79,
+          "end": 85,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 68
+            },
+            "end": {
+              "line": 2,
+              "column": 74
+            }
+          },
+          "range": [79, 85],
+          "value": "arg2",
+          "raw": "'arg2'",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.arguments.0]"
+        }
+      ],
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression]"
+    }
+  ],
+  "parent": "[Circular ~.templateBody.children.1.children.0]"
+}

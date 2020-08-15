@@ -1,59 +1,16 @@
-"use strict";
+'use strict';
 
+const { transformFilter, extractExpressionName } = require('../../utils/transform-filter.js');
 
 const filters = [];
 
-const extractMemberExpression = (memberExp) => {
-  if (memberExp.type === 'Identifier') {
-//    return `${memberExp.name}.`;
-    return memberExp.name;
-  }
-  const { object, property } = memberExp;
-  return extractMemberExpression(object) + '.' + property.name;
-}
-
-const extractExpressionArg = (expression) => {
-  const { type } = expression;
-  if (type === 'Identifier') {
-    return expression.name
-  }
-
-  if (type === 'Literal') {
-    return expression.raw;
-  }
-
-  if (type === 'MemberExpression') {
-    return extractMemberExpression(expression);
-  }
-}
-
-const transformFilter = (expression) => {
-  const expressionArg = extractExpressionArg(expression.expression);
-
-  const result = expression.filters.reduce((acc, f) => {
-    const callee = f.callee.name;
-    const args = f.arguments.map(a => {
-      if (a.type === 'Literal') {
-        return a.raw;
-      } else if (a.type === 'Identifier') {
-        return a.name;
-      }
-    });
-
-    return args.length === 0 ? `${callee}(${acc})` 
-      : `${callee}(${acc}, ${args.join(', ')})`;
-  }, expressionArg);
-
-  return result;
-}
-
 const fix = (context, node, result) => {
-  context.report({ 
+  context.report({
     node,
-    message: "Vue2 style filters are deprecated",
-    fix: (fixer) => fixer.replaceText(node, result),
+    message: 'Vue2 style filters are deprecated',
+    fix: fixer => fixer.replaceText(node, result),
   });
-}
+};
 
 const insertFix = (context, node, range, result) => {
   context.report({
@@ -75,14 +32,20 @@ const traverseInner = (context, node) => {
     return;
   }
 
-  if (expression.type !== 'VFilterSequenceExpression') {
-    expression.children && expression.children.forEach(c => traverseInner(context, c));
-    return;
+
+  if (expression.type === 'VFilterSequenceExpression') {
+    expression.filters.forEach(f => filters.push(f.callee.name));
+    const transformed = transformFilter(expression);
+    fix(context, node, `{{ ${transformed} }}`);
+  } else if (expression.type === 'CallExpression') {
+    const name = extractExpressionName(expression.callee);
+    if (name.startsWith('$options.filters.')) {
+      filters.push(name.replace('$options.filters.', ''));
+      const transformed = transformFilter(expression);
+      fix(context, node, `{{ ${transformed} }}`);
+    }
   }
 
-  const transformed = transformFilter(expression);
-  expression.filters.forEach(f => filters.push(f.callee.name));
-  fix(context, node, `{{ ${transformed} }}`);
   node.children && node.children.forEach(c => traverseInner(context, c));
 };
 
@@ -103,7 +66,7 @@ const traverseAttr = (context, node) => {
     attrFilters.forEach(f => {
       const boundArg = f.key.argument.name;
       const name = f.key.name;
-      const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`
+      const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
       const expression = f.value.expression;
       const transformed = transformFilter(expression);
       expression.filters.forEach(f => filters.push(f.callee.name));
@@ -113,9 +76,9 @@ const traverseAttr = (context, node) => {
   }
 
   node.children && node.children.forEach(c => traverseAttr(context, c));
-}
+};
 
-const traverseImports = (context, node) => {
+const resolveImports = (context, node) => {
   if (filters.length === 0) {
     return;
   }
@@ -127,14 +90,14 @@ const traverseImports = (context, node) => {
   const replace = `
 import { ${uniq.join(', ')} } from '${source}';`;
 
-  context.report({ 
+  context.report({
     node,
-    message: "Vue2 style filters are deprecated",
-    fix: (fixer) => fixer.insertTextAfter(last, replace),
+    message: 'Vue2 style filters are deprecated',
+    fix: fixer => fixer.insertTextAfter(last, replace),
   });
-}
+};
 
-const traverseVue = (context, node) => {
+const addMethods = (context, node) => {
   if (filters.length === 0) {
     return;
   }
@@ -151,36 +114,88 @@ const traverseVue = (context, node) => {
     const lastMethod = currentMethods[currentMethods.length - 1];
     const range = [lastMethod.range[1] + 1, lastMethod.range[1] + 1];
     const replace = `
-    ${methods.join(',\n    ')},`
+    ${methods.join(',\n    ')},`;
     insertFix(context, node, range, replace);
   } else {
-    const methodBlock = 
-`  methods: {
+    const methodBlock = `  methods: {
     ${methods.join(',\n    ')},
   },
 `;
     const range = [node.range[1] - 1, node.range[1]];
     insertFix(context, node, range, methodBlock);
   }
-}
+};
 
-const traverse = (context, node) => {
+const isOptionFilters = memberExp => {
+  if (memberExp.object.type !== 'MemberExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.type !== 'MemberExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.object.type !== 'ThisExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.property.name !== '$options') {
+    return false;
+  }
+
+  if (memberExp.object.property.name !== 'filters') {
+    return false;
+  }
+
+  return true;
+};
+
+const isNode = nodeLike => {
+  return (
+    nodeLike &&
+    nodeLike.type &&
+    nodeLike.loc &&
+    nodeLike.range
+  );
+};
+
+const fixOptions = (context, node) => {
+  if (node.type === 'MemberExpression' && isOptionFilters(node)) {
+    const filterName = node.property.name;
+    filters.push(filterName);
+    fix(context, node, `this.${filterName}`);
+  }
+
+  Object.entries(node).forEach(([key, value]) => {
+    if (key === 'parent') {
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.filter(v => isNode(v)).forEach(n => fixOptions(context, n));
+    } else if (isNode(value)) {
+      fixOptions(context, value);
+    }
+  });
+};
+
+const fixPipes = (context, node) => {
   traverseInner(context, node.templateBody);
   traverseAttr(context, node.templateBody);
-  traverseImports(context, node);
-}
+  node.body.forEach(n => fixOptions(context, n));
+  resolveImports(context, node);
+};
 
 module.exports = {
-  meta: { fixable: true, },
+  meta: { fixable: true },
   create(context) {
     filters.splice(0);
     return {
       Program: node => {
-        traverse(context, node);
+        fixPipes(context, node);
       },
       ObjectExpression: node => {
-        traverseVue(context, node);
+        addMethods(context, node);
       },
     };
   },
-}
+};

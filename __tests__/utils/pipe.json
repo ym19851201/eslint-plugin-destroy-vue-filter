@@ -1,0 +1,241 @@
+{
+  "type": "VFilterSequenceExpression",
+  "parent": "[Circular ~.templateBody.children.1.children.0]",
+  "expression": {
+    "type": "MemberExpression",
+    "start": 17,
+    "end": 22,
+    "loc": {
+      "start": {
+        "line": 2,
+        "column": 6
+      },
+      "end": {
+        "line": 2,
+        "column": 11
+      }
+    },
+    "range": [17, 22],
+    "object": {
+      "type": "MemberExpression",
+      "start": 17,
+      "end": 20,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 6
+        },
+        "end": {
+          "line": 2,
+          "column": 9
+        }
+      },
+      "range": [17, 20],
+      "object": {
+        "type": "Identifier",
+        "start": 17,
+        "end": 18,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 6
+          },
+          "end": {
+            "line": 2,
+            "column": 7
+          }
+        },
+        "range": [17, 18],
+        "name": "x",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression.object]"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 19,
+        "end": 20,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 8
+          },
+          "end": {
+            "line": 2,
+            "column": 9
+          }
+        },
+        "range": [19, 20],
+        "name": "y",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression.object]"
+      },
+      "computed": false,
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression]"
+    },
+    "property": {
+      "type": "Identifier",
+      "start": 21,
+      "end": 22,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 10
+        },
+        "end": {
+          "line": 2,
+          "column": 11
+        }
+      },
+      "range": [21, 22],
+      "name": "z",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression]"
+    },
+    "computed": false,
+    "parent": "[Circular ~.templateBody.children.1.children.0.expression]"
+  },
+  "filters": [
+    {
+      "type": "VFilter",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression]",
+      "range": [25, 32],
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 14
+        },
+        "end": {
+          "line": 2,
+          "column": 21
+        }
+      },
+      "callee": {
+        "type": "Identifier",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.0]",
+        "range": [25, 32],
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 14
+          },
+          "end": {
+            "line": 2,
+            "column": 21
+          }
+        },
+        "name": "filterA"
+      },
+      "arguments": []
+    },
+    {
+      "type": "VFilter",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression]",
+      "range": [35, 56],
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 24
+        },
+        "end": {
+          "line": 2,
+          "column": 45
+        }
+      },
+      "callee": {
+        "type": "Identifier",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.1]",
+        "range": [35, 42],
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 24
+          },
+          "end": {
+            "line": 2,
+            "column": 31
+          }
+        },
+        "name": "filterB"
+      },
+      "arguments": [
+        {
+          "type": "Identifier",
+          "start": 43,
+          "end": 47,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 32
+            },
+            "end": {
+              "line": 2,
+              "column": 36
+            }
+          },
+          "range": [43, 47],
+          "name": "arg1",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.1]"
+        },
+        {
+          "type": "Literal",
+          "start": 49,
+          "end": 55,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 38
+            },
+            "end": {
+              "line": 2,
+              "column": 44
+            }
+          },
+          "range": [49, 55],
+          "value": "arg2",
+          "raw": "'arg2'",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.1]"
+        }
+      ]
+    },
+    {
+      "type": "VFilter",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression]",
+      "range": [59, 66],
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 48
+        },
+        "end": {
+          "line": 2,
+          "column": 55
+        }
+      },
+      "callee": {
+        "type": "Identifier",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.2]",
+        "range": [59, 66],
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 48
+          },
+          "end": {
+            "line": 2,
+            "column": 55
+          }
+        },
+        "name": "filterC"
+      },
+      "arguments": []
+    }
+  ],
+  "range": [17, 66],
+  "loc": {
+    "start": {
+      "line": 2,
+      "column": 6
+    },
+    "end": {
+      "line": 2,
+      "column": 55
+    }
+  }
+}

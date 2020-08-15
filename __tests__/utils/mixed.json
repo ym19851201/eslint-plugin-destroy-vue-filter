@@ -1,0 +1,104 @@
+{
+  "type": "VFilterSequenceExpression",
+  "parent": "[Circular ~.templateBody.children.1.children.0]",
+  "expression": {
+    "type": "CallExpression",
+    "start": 17,
+    "end": 27,
+    "loc": {
+      "start": {
+        "line": 2,
+        "column": 6
+      },
+      "end": {
+        "line": 2,
+        "column": 16
+      }
+    },
+    "range": [17, 27],
+    "callee": {
+      "type": "Identifier",
+      "start": 17,
+      "end": 24,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 6
+        },
+        "end": {
+          "line": 2,
+          "column": 13
+        }
+      },
+      "range": [17, 24],
+      "name": "filterA",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression]"
+    },
+    "arguments": [
+      {
+        "type": "Identifier",
+        "start": 25,
+        "end": 26,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 14
+          },
+          "end": {
+            "line": 2,
+            "column": 15
+          }
+        },
+        "range": [25, 26],
+        "name": "x",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression]"
+      }
+    ],
+    "parent": "[Circular ~.templateBody.children.1.children.0.expression]"
+  },
+  "filters": [
+    {
+      "type": "VFilter",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression]",
+      "range": [30, 37],
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 19
+        },
+        "end": {
+          "line": 2,
+          "column": 26
+        }
+      },
+      "callee": {
+        "type": "Identifier",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.0]",
+        "range": [30, 37],
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 19
+          },
+          "end": {
+            "line": 2,
+            "column": 26
+          }
+        },
+        "name": "filterB"
+      },
+      "arguments": []
+    }
+  ],
+  "range": [17, 37],
+  "loc": {
+    "start": {
+      "line": 2,
+      "column": 6
+    },
+    "end": {
+      "line": 2,
+      "column": 26
+    }
+  }
+}

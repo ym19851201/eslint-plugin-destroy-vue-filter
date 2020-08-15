@@ -4,7 +4,7 @@ const rule = require("../rules/destroy/destroy-filter");
 
 const eslint = require("eslint");
 const RuleTester = eslint.RuleTester;
-//const fs = require('fs');
+const fs = require('fs');
 
 const parserOptions = {
   ecmaVersion: 11,
@@ -170,15 +170,15 @@ export default Vue.extend({
 `
 };
 
-//const code = fs.readFileSync('./__tests__/index.vue', 'utf8').toString();
-//const output = fs.readFileSync('./__tests__/index-result.vue', 'utf8').toString();
+const optionsCode = fs.readFileSync('./__tests__/destroy/options.vue', 'utf8').toString();
+const optionsOutput = fs.readFileSync('./__tests__/destroy/options-result.vue', 'utf8').toString();
 
-//const productionCase = {
-//  code,
-//  output,
-//  errors: errors(6),
-//}
+const optionsCase = {
+  code: optionsCode,
+  output: optionsOutput,
+  errors: errors(7),
+}
 
-const invalid = [multiFilter, filterWithArg, deluxePattern];
+const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase];
 
 ruleTester.run("destroy-filter", rule, { valid, invalid });
