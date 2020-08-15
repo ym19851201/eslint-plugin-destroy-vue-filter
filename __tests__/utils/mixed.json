@@ -4,7 +4,7 @@
   "expression": {
     "type": "CallExpression",
     "start": 17,
-    "end": 27,
+    "end": 47,
     "loc": {
       "start": {
         "line": 2,
@@ -12,14 +12,14 @@
       },
       "end": {
         "line": 2,
-        "column": 16
+        "column": 36
       }
     },
-    "range": [17, 27],
+    "range": [17, 47],
     "callee": {
-      "type": "Identifier",
+      "type": "MemberExpression",
       "start": 17,
-      "end": 24,
+      "end": 41,
       "loc": {
         "start": {
           "line": 2,
@@ -27,30 +27,102 @@
         },
         "end": {
           "line": 2,
-          "column": 13
+          "column": 30
         }
       },
-      "range": [17, 24],
-      "name": "filterA",
+      "range": [17, 41],
+      "object": {
+        "type": "MemberExpression",
+        "start": 17,
+        "end": 33,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 6
+          },
+          "end": {
+            "line": 2,
+            "column": 22
+          }
+        },
+        "range": [17, 33],
+        "object": {
+          "type": "Identifier",
+          "start": 17,
+          "end": 25,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 6
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "range": [17, 25],
+          "name": "$options",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression.callee.object]"
+        },
+        "property": {
+          "type": "Identifier",
+          "start": 26,
+          "end": 33,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 15
+            },
+            "end": {
+              "line": 2,
+              "column": 22
+            }
+          },
+          "range": [26, 33],
+          "name": "filters",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression.callee.object]"
+        },
+        "computed": false,
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression.callee]"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 34,
+        "end": 41,
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 23
+          },
+          "end": {
+            "line": 2,
+            "column": 30
+          }
+        },
+        "range": [34, 41],
+        "name": "filterA",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression.callee]"
+      },
+      "computed": false,
       "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression]"
     },
     "arguments": [
       {
         "type": "Identifier",
-        "start": 25,
-        "end": 26,
+        "start": 42,
+        "end": 46,
         "loc": {
           "start": {
             "line": 2,
-            "column": 14
+            "column": 31
           },
           "end": {
             "line": 2,
-            "column": 15
+            "column": 35
           }
         },
-        "range": [25, 26],
-        "name": "x",
+        "range": [42, 46],
+        "name": "arg1",
         "parent": "[Circular ~.templateBody.children.1.children.0.expression.expression]"
       }
     ],
@@ -60,37 +132,107 @@
     {
       "type": "VFilter",
       "parent": "[Circular ~.templateBody.children.1.children.0.expression]",
-      "range": [30, 37],
+      "range": [50, 57],
       "loc": {
         "start": {
           "line": 2,
-          "column": 19
+          "column": 39
         },
         "end": {
           "line": 2,
-          "column": 26
+          "column": 46
         }
       },
       "callee": {
         "type": "Identifier",
         "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.0]",
-        "range": [30, 37],
+        "range": [50, 57],
         "loc": {
           "start": {
             "line": 2,
-            "column": 19
+            "column": 39
           },
           "end": {
             "line": 2,
-            "column": 26
+            "column": 46
           }
         },
         "name": "filterB"
       },
       "arguments": []
+    },
+    {
+      "type": "VFilter",
+      "parent": "[Circular ~.templateBody.children.1.children.0.expression]",
+      "range": [60, 76],
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 49
+        },
+        "end": {
+          "line": 2,
+          "column": 65
+        }
+      },
+      "callee": {
+        "type": "Identifier",
+        "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.1]",
+        "range": [60, 67],
+        "loc": {
+          "start": {
+            "line": 2,
+            "column": 49
+          },
+          "end": {
+            "line": 2,
+            "column": 56
+          }
+        },
+        "name": "filterC"
+      },
+      "arguments": [
+        {
+          "type": "Identifier",
+          "start": 68,
+          "end": 72,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 57
+            },
+            "end": {
+              "line": 2,
+              "column": 61
+            }
+          },
+          "range": [68, 72],
+          "name": "arg2",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.1]"
+        },
+        {
+          "type": "Literal",
+          "start": 74,
+          "end": 75,
+          "loc": {
+            "start": {
+              "line": 2,
+              "column": 63
+            },
+            "end": {
+              "line": 2,
+              "column": 64
+            }
+          },
+          "range": [74, 75],
+          "value": 1,
+          "raw": "1",
+          "parent": "[Circular ~.templateBody.children.1.children.0.expression.filters.1]"
+        }
+      ]
     }
   ],
-  "range": [17, 37],
+  "range": [17, 76],
   "loc": {
     "start": {
       "line": 2,
@@ -98,7 +240,7 @@
     },
     "end": {
       "line": 2,
-      "column": 26
+      "column": 65
     }
   }
 }

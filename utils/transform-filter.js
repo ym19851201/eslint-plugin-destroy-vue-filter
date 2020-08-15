@@ -30,6 +30,10 @@ const extractExpressionName = expression => {
   if (type === 'MemberExpression') {
     return extractMemberExpression(expression);
   }
+
+  if (type === 'CallExpression') {
+    return transformCallExpression(expression);
+  }
 };
 
 const transformPipeExpression = expression => {
@@ -47,7 +51,7 @@ const transformPipeExpression = expression => {
   }, expressionArg);
 
   return result;
-}
+};
 
 const isThisOptionFilters = memberExp => {
   if (memberExp.object.type !== 'MemberExpression') {
@@ -97,26 +101,45 @@ const isOptionFilters = memberExp => {
   return memberExp.property.name;
 };
 
-const transformCallExpression = (expression) => {
-//  const callee = extractExpressionName(expression.callee).replace('$options.filters.', '');
+const transformCallExpression = expression => {
   const callee = isOptionFilters(expression.callee);
   if (!callee) {
     return;
   }
 
   const args = expression.arguments.map(a => {
-    const name =  extractExpressionName(a);
-    if (name) return name;
+    const name = extractExpressionName(a);
+    if (name) {
+      return name;
+    }
 
     return transformCallExpression(a);
   });
 
   return `${callee}(${args.join(', ')})`;
-}
+};
+
+const extractFilterNamesInCallExpression = expression => {
+  const filterName = isOptionFilters(expression.callee);
+  const optionFilters = expression.arguments.filter(
+    arg => arg.type === 'CallExpression' && isOptionFilters(arg.callee),
+  );
+  return optionFilters.reduce(
+    (acc, f) => {
+      const name = isOptionFilters(f.callee);
+      if (name) {
+        acc.push(...extractFilterNamesInCallExpression(f));
+      }
+      return acc;
+    },
+    [filterName],
+  );
+};
 
 module.exports = {
   transformPipeExpression,
   transformCallExpression,
   isThisOptionFilters,
   isOptionFilters,
+  extractFilterNamesInCallExpression,
 };

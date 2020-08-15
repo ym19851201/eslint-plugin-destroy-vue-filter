@@ -1,12 +1,15 @@
 const {
   transformPipeExpression,
   transformCallExpression,
+  extractFilterNamesInCallExpression,
 } = require('../../utils/transform-filter.js');
 
 const pipeExpression = require('./pipe.json');
-//const mixedExpresstion = require('./mixed.json');
+const mixedExpresstion = require('./mixed.json');
 const callExpresstion = require('./call.json');
 const callComplicatedExpresstion = require('./call-complicated.json');
+
+const filter = require('./filter-names.json');
 
 describe('transformPipeExpression', () => {
   test('Pipe case', () => {
@@ -15,9 +18,9 @@ describe('transformPipeExpression', () => {
     );
   });
 
-  //  test('Mixed case', () => {
-  //    expect(transformFilter(mixedExpresstion)).toEqual("filterB(filterA(x))");
-  //  });
+    test('Mixed case', () => {
+      expect(transformPipeExpression(mixedExpresstion)).toEqual("filterC(filterB(filterA(arg1)), arg2, 1)");
+    });
 });
 
 describe('transformCallExpression', () => {
@@ -30,6 +33,14 @@ describe('transformCallExpression', () => {
   test('Comlicated call case', () => {
     expect(transformCallExpression(callComplicatedExpresstion)).toEqual(
       "filterA(filterB(x.y.z), arg1, 'arg2', a.b.c)",
+    );
+  });
+});
+
+describe('extractFilterNamesInCallExpression', () => {
+  test('case', () => {
+    expect(extractFilterNamesInCallExpression(filter)).toEqual(
+      ['filterName', 'truncate', 'yen'],
     );
   });
 });

@@ -176,7 +176,7 @@ const optionsOutput = fs.readFileSync('./__tests__/destroy/options-result.vue', 
 const optionsCase = {
   code: optionsCode,
   output: optionsOutput,
-  errors: errors(7),
+  errors: errors(11),
 }
 
 const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase];

@@ -5,6 +5,7 @@ const {
   transformCallExpression,
   isThisOptionFilters,
   isOptionFilters,
+  extractFilterNamesInCallExpression,
 } = require('../../utils/transform-filter.js');
 
 const filters = [];
@@ -46,7 +47,7 @@ const traverseInner = (context, node) => {
     case 'CallExpression':
       const filterName = isOptionFilters(expression.callee);
       if (filterName) {
-        filters.push(filterName);
+        filters.push(...extractFilterNamesInCallExpression(expression));
         const transformed = transformCallExpression(expression);
         fix(context, node, `{{ ${transformed} }}`);
       }
