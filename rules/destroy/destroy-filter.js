@@ -8,8 +8,6 @@ const {
   extractFilterNamesInCallExpression,
 } = require('../../utils/transform-filter.js');
 
-const filters = [];
-
 const fix = (context, node, result) => {
   context.report({
     node,
@@ -26,10 +24,10 @@ const insertFix = (context, node, range, result) => {
   });
 };
 
-const traverseInner = (context, node) => {
+const traverseInner = (context, node, filters) => {
   if (!node) return;
   if (node.type !== 'VExpressionContainer') {
-    node.children && node.children.forEach(c => traverseInner(context, c));
+    node.children && node.children.forEach(c => traverseInner(context, c, filters));
     return;
   }
 
@@ -56,10 +54,10 @@ const traverseInner = (context, node) => {
       break;
   }
 
-  node.children && node.children.forEach(c => traverseInner(context, c));
+  node.children && node.children.forEach(c => traverseInner(context, c, filters));
 };
 
-const traverseAttr = (context, node) => {
+const traverseAttr = (context, node, filters) => {
   if (!node) return;
 
   if (node.type === 'VElement' && node.startTag) {
@@ -85,10 +83,10 @@ const traverseAttr = (context, node) => {
     });
   }
 
-  node.children && node.children.forEach(c => traverseAttr(context, c));
+  node.children && node.children.forEach(c => traverseAttr(context, c, filters));
 };
 
-const resolveImports = (context, node) => {
+const resolveImports = (context, node, filters) => {
   if (filters.length === 0) {
     return;
   }
@@ -107,7 +105,7 @@ import { ${uniq.join(', ')} } from '${source}';`;
   });
 };
 
-const addMethods = (context, node) => {
+const addMethods = (context, node, filters) => {
   if (filters.length === 0) {
     return;
   }
@@ -140,7 +138,7 @@ const isNode = nodeLike => {
   return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
 };
 
-const fixOptions = (context, node) => {
+const fixOptions = (context, node, filters) => {
   if (node.type === 'MemberExpression' && isThisOptionFilters(node)) {
     const filterName = node.property.name;
     filters.push(filterName);
@@ -152,30 +150,30 @@ const fixOptions = (context, node) => {
       return;
     }
     if (Array.isArray(value)) {
-      value.filter(v => isNode(v)).forEach(n => fixOptions(context, n));
+      value.filter(v => isNode(v)).forEach(n => fixOptions(context, n, filters));
     } else if (isNode(value)) {
-      fixOptions(context, value);
+      fixOptions(context, value, filters);
     }
   });
 };
 
-const fixPipes = (context, node) => {
-  traverseInner(context, node.templateBody);
-  traverseAttr(context, node.templateBody);
-  node.body.forEach(n => fixOptions(context, n));
-  resolveImports(context, node);
+const fixPipes = (context, node, filters) => {
+  traverseInner(context, node.templateBody, filters);
+  traverseAttr(context, node.templateBody, filters);
+  node.body.forEach(n => fixOptions(context, n, filters));
+  resolveImports(context, node, filters);
 };
 
 module.exports = {
   meta: { fixable: true },
   create(context) {
-    filters.splice(0);
+    const filters = [];
     return {
       Program: node => {
-        fixPipes(context, node);
+        fixPipes(context, node, filters);
       },
       ObjectExpression: node => {
-        addMethods(context, node);
+        addMethods(context, node, filters);
       },
     };
   },
