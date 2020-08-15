@@ -49,8 +49,61 @@ const transformPipeExpression = expression => {
   return result;
 }
 
+const isThisOptionFilters = memberExp => {
+  if (memberExp.object.type !== 'MemberExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.type !== 'MemberExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.object.type !== 'ThisExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.property.name !== '$options') {
+    return false;
+  }
+
+  if (memberExp.object.property.name !== 'filters') {
+    return false;
+  }
+
+  return true;
+};
+
+const isOptionFilters = memberExp => {
+  if (memberExp.type !== 'MemberExpression') {
+    return false;
+  }
+
+  if (memberExp.object.type !== 'MemberExpression') {
+    return false;
+  }
+
+  if (memberExp.object.object.type !== 'Identifier') {
+    return false;
+  }
+
+  if (memberExp.object.object.name !== '$options') {
+    return false;
+  }
+
+  if (memberExp.object.property.name !== 'filters') {
+    return false;
+  }
+
+  return memberExp.property.name;
+};
+
 const transformCallExpression = (expression) => {
-  const callee = extractExpressionName(expression.callee).replace('$options.filters.', '');
+//  const callee = extractExpressionName(expression.callee).replace('$options.filters.', '');
+  const callee = isOptionFilters(expression.callee);
+  if (!callee) {
+    return;
+  }
+
   const args = expression.arguments.map(a => {
     const name =  extractExpressionName(a);
     if (name) return name;
@@ -61,15 +114,9 @@ const transformCallExpression = (expression) => {
   return `${callee}(${args.join(', ')})`;
 }
 
-const transformFilter = expression => {
-  if (expression.type === 'VFilterSequenceExpression') {
-    return transformPipeExpression(expression);
-  } else if (expression.type === 'CallExpression') {
-    return transformCallExpression(expression);
-  }
-}
-
 module.exports = {
-  transformFilter,
-  extractExpressionName,
+  transformPipeExpression,
+  transformCallExpression,
+  isThisOptionFilters,
+  isOptionFilters,
 };

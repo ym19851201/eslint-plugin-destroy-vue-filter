@@ -1,6 +1,11 @@
 'use strict';
 
-const { transformFilter, extractExpressionName } = require('../../utils/transform-filter.js');
+const {
+  transformPipeExpression,
+  transformCallExpression,
+  isThisOptionFilters,
+  isOptionFilters,
+} = require('../../utils/transform-filter.js');
 
 const filters = [];
 
@@ -32,18 +37,22 @@ const traverseInner = (context, node) => {
     return;
   }
 
-
-  if (expression.type === 'VFilterSequenceExpression') {
-    expression.filters.forEach(f => filters.push(f.callee.name));
-    const transformed = transformFilter(expression);
-    fix(context, node, `{{ ${transformed} }}`);
-  } else if (expression.type === 'CallExpression') {
-    const name = extractExpressionName(expression.callee);
-    if (name.startsWith('$options.filters.')) {
-      filters.push(name.replace('$options.filters.', ''));
-      const transformed = transformFilter(expression);
+  switch (expression.type) {
+    case 'VFilterSequenceExpression':
+      expression.filters.forEach(f => filters.push(f.callee.name));
+      const transformed = transformPipeExpression(expression);
       fix(context, node, `{{ ${transformed} }}`);
-    }
+      break;
+    case 'CallExpression':
+      const filterName = isOptionFilters(expression.callee);
+      if (filterName) {
+        filters.push(filterName);
+        const transformed = transformCallExpression(expression);
+        fix(context, node, `{{ ${transformed} }}`);
+      }
+      break;
+    default:
+      break;
   }
 
   node.children && node.children.forEach(c => traverseInner(context, c));
@@ -68,7 +77,7 @@ const traverseAttr = (context, node) => {
       const name = f.key.name;
       const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
       const expression = f.value.expression;
-      const transformed = transformFilter(expression);
+      const transformed = transformPipeExpression(expression);
       expression.filters.forEach(f => filters.push(f.callee.name));
 
       fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
@@ -126,41 +135,12 @@ const addMethods = (context, node) => {
   }
 };
 
-const isOptionFilters = memberExp => {
-  if (memberExp.object.type !== 'MemberExpression') {
-    return false;
-  }
-
-  if (memberExp.object.object.type !== 'MemberExpression') {
-    return false;
-  }
-
-  if (memberExp.object.object.object.type !== 'ThisExpression') {
-    return false;
-  }
-
-  if (memberExp.object.object.property.name !== '$options') {
-    return false;
-  }
-
-  if (memberExp.object.property.name !== 'filters') {
-    return false;
-  }
-
-  return true;
-};
-
 const isNode = nodeLike => {
-  return (
-    nodeLike &&
-    nodeLike.type &&
-    nodeLike.loc &&
-    nodeLike.range
-  );
+  return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
 };
 
 const fixOptions = (context, node) => {
-  if (node.type === 'MemberExpression' && isOptionFilters(node)) {
+  if (node.type === 'MemberExpression' && isThisOptionFilters(node)) {
     const filterName = node.property.name;
     filters.push(filterName);
     fix(context, node, `this.${filterName}`);
