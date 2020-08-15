@@ -1,6 +1,6 @@
 "use strict";
 
-const rule = require("../rules/destroy/destroy-filter");
+const rule = require("../../rules/destroy/destroy-filter");
 
 const eslint = require("eslint");
 const RuleTester = eslint.RuleTester;

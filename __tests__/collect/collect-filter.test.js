@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const rule = require("../rules/collect/collect-filter");
+const rule = require("../../rules/collect/collect-filter");
 
 const eslint = require("eslint");
 const RuleTester = eslint.RuleTester;
@@ -19,8 +19,8 @@ const settings = {
 };
 const ruleTester = new RuleTester(settings);
 
-const code = fs.readFileSync('./__tests__/filter.ts', 'utf8');
-const output = fs.readFileSync('./__tests__/result.ts', 'utf8');
+const code = fs.readFileSync('./__tests__/collect/filter.ts', 'utf8');
+const output = fs.readFileSync('./__tests__/collect/result.ts', 'utf8');
 
 const errors = (n = 1) =>
   [...Array(n).keys()].map(() => ({ message: "Vue2 style filters are deprecated" }));
