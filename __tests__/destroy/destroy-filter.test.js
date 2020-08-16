@@ -173,12 +173,21 @@ export default Vue.extend({
 const optionsCode = fs.readFileSync('./__tests__/destroy/options.vue', 'utf8').toString();
 const optionsOutput = fs.readFileSync('./__tests__/destroy/options-result.vue', 'utf8').toString();
 
+const localFilterCode = fs.readFileSync('./__tests__/destroy/local-filters.vue', 'utf8').toString();
+const localFilterOutput = fs.readFileSync('./__tests__/destroy/local-filter-result.vue', 'utf8').toString();
+
 const optionsCase = {
   code: optionsCode,
   output: optionsOutput,
   errors: errors(11),
 }
 
-const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase];
+const localFilterCase = {
+  code: localFilterCode,
+  output: localFilterOutput,
+  errors: errors(8),
+}
+
+const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase, localFilterCase];
 
 ruleTester.run("destroy-filter", rule, { valid, invalid });

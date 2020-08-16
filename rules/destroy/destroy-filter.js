@@ -27,7 +27,8 @@ const insertFix = (context, node, range, result) => {
 const traverseInner = (context, node, filters) => {
   if (!node) return;
   if (node.type !== 'VExpressionContainer') {
-    node.children && node.children.forEach(c => traverseInner(context, c, filters));
+    node.children &&
+      node.children.forEach(c => traverseInner(context, c, filters));
     return;
   }
 
@@ -38,7 +39,10 @@ const traverseInner = (context, node, filters) => {
 
   switch (expression.type) {
     case 'VFilterSequenceExpression':
-      expression.filters.forEach(f => filters.push(f.callee.name));
+      if (expression.expression.type === 'CallExpression') {
+        filters.push(...extractFilterNamesInCallExpression(expression.expression));
+      }
+      filters.push(...expression.filters.map(f => f.callee.name));
       const transformed = transformPipeExpression(expression);
       fix(context, node, `{{ ${transformed} }}`);
       break;
@@ -54,7 +58,8 @@ const traverseInner = (context, node, filters) => {
       break;
   }
 
-  node.children && node.children.forEach(c => traverseInner(context, c, filters));
+  node.children &&
+    node.children.forEach(c => traverseInner(context, c, filters));
 };
 
 const traverseAttr = (context, node, filters) => {
@@ -77,23 +82,29 @@ const traverseAttr = (context, node, filters) => {
       const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
       const expression = f.value.expression;
       const transformed = transformPipeExpression(expression);
-      expression.filters.forEach(f => filters.push(f.callee.name));
+      filters.push(...expression.filters.map(f => f.callee.name));
 
       fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
     });
   }
 
-  node.children && node.children.forEach(c => traverseAttr(context, c, filters));
+  node.children &&
+    node.children.forEach(c => traverseAttr(context, c, filters));
 };
 
-const resolveImports = (context, node, filters) => {
+const resolveImports = (context, node, filters, localFilters) => {
   if (filters.length === 0) {
     return;
   }
 
   const imports = node.body.filter(n => n.type === 'ImportDeclaration');
   const last = imports[imports.length - 1];
-  const uniq = [...new Set(filters)].sort();
+
+  const withoutLocal = filters.filter(
+    f => !localFilters.find(lf => lf.key.name === f),
+  );
+
+  const uniq = [...new Set(withoutLocal)].sort();
   const source = context.options[0] || 'path/to/filters.ts';
   const replace = `
 import { ${uniq.join(', ')} } from '${source}';`;
@@ -105,8 +116,8 @@ import { ${uniq.join(', ')} } from '${source}';`;
   });
 };
 
-const addMethods = (context, node, filters) => {
-  if (filters.length === 0) {
+const addMethods = (context, node, filters, localFilters) => {
+  if (filters.length === 0 && localFilters.length === 0) {
     return;
   }
 
@@ -114,7 +125,13 @@ const addMethods = (context, node, filters) => {
     return;
   }
 
-  const methods = [...new Set(filters)].sort();
+  const withoutLocal = filters.filter(
+    f => !localFilters.find(lf => lf.key.name === f),
+  );
+  const methods = [...new Set(withoutLocal)].sort();
+  const sourceCode = context.getSourceCode();
+  const localFilterTexts = localFilters.map(lf => sourceCode.getText(lf));
+  methods.push(...localFilterTexts);
 
   const methodsKey = node.properties.find(prop => prop.key.name === 'methods');
   if (methodsKey) {
@@ -150,30 +167,71 @@ const fixOptions = (context, node, filters) => {
       return;
     }
     if (Array.isArray(value)) {
-      value.filter(v => isNode(v)).forEach(n => fixOptions(context, n, filters));
+      value
+        .filter(v => isNode(v))
+        .forEach(n => fixOptions(context, n, filters));
     } else if (isNode(value)) {
       fixOptions(context, value, filters);
     }
   });
 };
 
-const fixPipes = (context, node, filters) => {
+const cutLocalFilters = (context, localFilter) => {
+  if (!localFilter) {
+    return [];
+  }
+
+  const localfilters = localFilter.value.properties;
+  const sourceCode = context.getSourceCode();
+  const commaLike = sourceCode.getTokenAfter(localFilter);
+  const tmp = sourceCode.getTokenAfter(commaLike);
+  const isComma = commaLike.type === 'Punctuator' && commaLike.value === ',';
+  const range = [
+    localFilter.range[0],
+    isComma ? commaLike.range[1] : localFilter.range[1],
+  ];
+
+  context.report({
+    node: localFilter,
+    message: 'Vue2 style filters are deprecated',
+    fix: fixer => fixer.removeRange(range),
+  });
+
+  return localfilters;
+};
+
+const findFiltersProps = rootNode => {
+  const vueNode = rootNode.body.find(
+    n =>
+      n.type === 'ExportDefaultDeclaration' &&
+      n.declaration.callee.object.name === 'Vue',
+  );
+  const innerVue = vueNode.declaration.arguments[0].properties;
+
+  return innerVue.find(prop => prop.key.name === 'filters');
+}
+
+const fixPipes = (context, node, filters, localFilters) => {
   traverseInner(context, node.templateBody, filters);
   traverseAttr(context, node.templateBody, filters);
   node.body.forEach(n => fixOptions(context, n, filters));
-  resolveImports(context, node, filters);
+
+  const filtersProps = findFiltersProps(node);
+  localFilters.push(...cutLocalFilters(context, filtersProps));
+  resolveImports(context, node, filters, localFilters);
 };
 
 module.exports = {
   meta: { fixable: true },
   create(context) {
     const filters = [];
+    const localFilters = [];
     return {
       Program: node => {
-        fixPipes(context, node, filters);
+        fixPipes(context, node, filters, localFilters);
       },
       ObjectExpression: node => {
-        addMethods(context, node, filters);
+        addMethods(context, node, filters, localFilters);
       },
     };
   },
