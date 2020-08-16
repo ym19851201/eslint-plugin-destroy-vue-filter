@@ -77,7 +77,7 @@ const isThisOptionFilters = memberExp => {
   return true;
 };
 
-const isOptionFilters = memberExp => {
+const findOptionFilters = memberExp => {
   if (memberExp.type !== 'MemberExpression') {
     return false;
   }
@@ -102,7 +102,7 @@ const isOptionFilters = memberExp => {
 };
 
 const transformCallExpression = expression => {
-  const callee = isOptionFilters(expression.callee);
+  const callee = findOptionFilters(expression.callee);
   if (!callee) {
     return;
   }
@@ -120,13 +120,13 @@ const transformCallExpression = expression => {
 };
 
 const extractFilterNamesInCallExpression = expression => {
-  const filterName = isOptionFilters(expression.callee);
+  const filterName = findOptionFilters(expression.callee);
   const optionFilters = expression.arguments.filter(
-    arg => arg.type === 'CallExpression' && isOptionFilters(arg.callee),
+    arg => arg.type === 'CallExpression' && findOptionFilters(arg.callee),
   );
   return optionFilters.reduce(
     (acc, f) => {
-      const name = isOptionFilters(f.callee);
+      const name = findOptionFilters(f.callee);
       if (name) {
         acc.push(...extractFilterNamesInCallExpression(f));
       }
@@ -136,10 +136,15 @@ const extractFilterNamesInCallExpression = expression => {
   );
 };
 
+const isNode = nodeLike => {
+  return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
+};
+
 module.exports = {
   transformPipeExpression,
   transformCallExpression,
   isThisOptionFilters,
-  isOptionFilters,
+  findOptionFilters,
   extractFilterNamesInCallExpression,
+  isNode,
 };

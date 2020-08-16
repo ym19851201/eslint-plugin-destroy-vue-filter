@@ -4,8 +4,9 @@ const {
   transformPipeExpression,
   transformCallExpression,
   isThisOptionFilters,
-  isOptionFilters,
+  findOptionFilters,
   extractFilterNamesInCallExpression,
+  isNode,
 } = require('../../utils/transform-filter.js');
 
 const fix = (context, node, result) => {
@@ -47,7 +48,7 @@ const traverseInner = (context, node, filters) => {
       fix(context, node, `{{ ${transformed} }}`);
       break;
     case 'CallExpression':
-      const filterName = isOptionFilters(expression.callee);
+      const filterName = findOptionFilters(expression.callee);
       if (filterName) {
         filters.push(...extractFilterNamesInCallExpression(expression));
         const transformed = transformCallExpression(expression);
@@ -149,10 +150,6 @@ const addMethods = (context, node, filters, localFilters) => {
     const range = [node.range[1] - 1, node.range[1]];
     insertFix(context, node, range, methodBlock);
   }
-};
-
-const isNode = nodeLike => {
-  return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
 };
 
 const fixOptions = (context, node, filters) => {
