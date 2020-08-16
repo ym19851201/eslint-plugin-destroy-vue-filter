@@ -1,6 +1,6 @@
 <template>
-  <p>{{ x.y.z | filter}}</p>
-  <p>{{ id[0] | filter}}</p>
+  <p>{{ x.y.z | filter }}</p>
+  <p>{{ id[0] | filter }}</p>
   <p>{{ $options.filters.filterA(prop) }}</p>
   <p>{{ prop | filterA | filterB | filterC(arg1.x, 1) }}</p>
   <div>

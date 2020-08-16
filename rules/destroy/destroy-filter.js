@@ -27,6 +27,20 @@ const insertFix = (context, node, range, result) => {
   });
 };
 
+const processFilterSequence = (context, expression, filters) => {
+  fix(context, expression, transformPipeExpression(expression));
+
+  filters.push(...expression.filters.map(f => f.callee.name));
+  if (expression.expression.type === 'CallExpression') {
+    filters.push(...extractFilterNamesInCallExpression(expression.expression));
+  }
+};
+
+const processCallExpression = (context, expression, filters) => {
+  fix(context, expression, transformCallExpression(expression));
+  filters.push(...extractFilterNamesInCallExpression(expression));
+};
+
 const traverseInner = (context, node, filters) => {
   if (!node) return;
   if (node.type !== 'VExpressionContainer') {
@@ -42,21 +56,12 @@ const traverseInner = (context, node, filters) => {
 
   switch (expression.type) {
     case 'VFilterSequenceExpression':
-      if (expression.expression.type === 'CallExpression') {
-        filters.push(
-          ...extractFilterNamesInCallExpression(expression.expression),
-        );
-      }
-      filters.push(...expression.filters.map(f => f.callee.name));
-      const transformed = transformPipeExpression(expression);
-      fix(context, node, `{{ ${transformed} }}`);
+      processFilterSequence(context, expression, filters);
       break;
     case 'CallExpression':
       const filterName = findOptionFilters(expression.callee);
       if (filterName) {
-        filters.push(...extractFilterNamesInCallExpression(expression));
-        const transformed = transformCallExpression(expression);
-        fix(context, node, `{{ ${transformed} }}`);
+        processCallExpression(context, expression, filters);
       }
       break;
     default:
@@ -76,19 +81,7 @@ const traverseAttr = (context, node, filters) => {
     );
 
     filterExpressions.forEach(f => {
-      const boundArg = f.key.argument.name;
-      const name = f.key.name;
-      const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
-      const expression = f.value.expression;
-      const transformed = transformPipeExpression(expression);
-      filters.push(...expression.filters.map(f => f.callee.name));
-      if (expression.expression.type === 'CallExpression') {
-        filters.push(
-          ...extractFilterNamesInCallExpression(expression.expression),
-        );
-      }
-
-      fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
+      processFilterSequence(context, f.value.expression, filters);
     });
 
     const callExpressions = node.startTag.attributes.filter(attr =>
@@ -96,12 +89,7 @@ const traverseAttr = (context, node, filters) => {
     );
 
     callExpressions.forEach(f => {
-      const boundArg = f.key.argument.name;
-      const name = f.key.name;
-      const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
-      const transformed = transformCallExpression(f.value.expression);
-      filters.push(...extractFilterNamesInCallExpression(f.value.expression));
-      fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
+      processCallExpression(context, f.value.expression, filters);
     });
   }
 
