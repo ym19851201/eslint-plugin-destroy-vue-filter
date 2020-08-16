@@ -5,11 +5,14 @@
     <p>{{ localFilterC(filterA(prop)) }}</p>
     <p>{{ filterB(localFilterA(prop)) }}</p>
     <p>{{ methodFilter(prop) }}</p>
+    <p :id="idFilter(id)">XXX</p>
+    <p :id="localIdFilter(idFilter2(id))">XXX</p>
+    <p :id="idFilter3(id)">XXX</p>
   </div>
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import { filterA, filterB, importedFilter } from 'path/to/filters.ts';
+import { filterA, filterB, idFilter, idFilter2, idFilter3, importedFilter } from 'path/to/filters.ts';
 export default Vue.extend({
   
   methods: {
@@ -18,6 +21,9 @@ export default Vue.extend({
     },
     filterA,
     filterB,
+    idFilter,
+    idFilter2,
+    idFilter3,
     importedFilter,
     localFilterA(value: string): string {
       return value.toUpperCase();
@@ -31,6 +37,9 @@ export default Vue.extend({
         return acc;
       }, []);
       return texts.join('\n');
+    },
+    localIdFilter(id: string): string {
+      return id.slice(0, 5);
     },
   },
 })

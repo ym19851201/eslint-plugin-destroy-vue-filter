@@ -3,10 +3,12 @@
 const {
   transformPipeExpression,
   transformCallExpression,
-  isThisOptionFilters,
+  findThisOptionFilters,
   findOptionFilters,
   extractFilterNamesInCallExpression,
   isNode,
+  findVueProps,
+  isType,
 } = require('../../utils/transform-filter.js');
 
 const fix = (context, node, result) => {
@@ -41,7 +43,9 @@ const traverseInner = (context, node, filters) => {
   switch (expression.type) {
     case 'VFilterSequenceExpression':
       if (expression.expression.type === 'CallExpression') {
-        filters.push(...extractFilterNamesInCallExpression(expression.expression));
+        filters.push(
+          ...extractFilterNamesInCallExpression(expression.expression),
+        );
       }
       filters.push(...expression.filters.map(f => f.callee.name));
       const transformed = transformPipeExpression(expression);
@@ -67,24 +71,36 @@ const traverseAttr = (context, node, filters) => {
   if (!node) return;
 
   if (node.type === 'VElement' && node.startTag) {
-    const attrFilters = node.startTag.attributes.filter(attr => {
-      const { value } = attr;
-      if (!value) return false;
+    const filterExpressions = node.startTag.attributes.filter(attr =>
+      isType(attr, 'VFilterSequenceExpression'),
+    );
 
-      const { expression } = value;
-      if (!expression) return false;
-
-      return expression.type === 'VFilterSequenceExpression';
-    });
-
-    attrFilters.forEach(f => {
+    filterExpressions.forEach(f => {
       const boundArg = f.key.argument.name;
       const name = f.key.name;
       const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
       const expression = f.value.expression;
       const transformed = transformPipeExpression(expression);
       filters.push(...expression.filters.map(f => f.callee.name));
+      if (expression.expression.type === 'CallExpression') {
+        filters.push(
+          ...extractFilterNamesInCallExpression(expression.expression),
+        );
+      }
 
+      fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
+    });
+
+    const callExpressions = node.startTag.attributes.filter(attr =>
+      isType(attr, 'CallExpression'),
+    );
+
+    callExpressions.forEach(f => {
+      const boundArg = f.key.argument.name;
+      const name = f.key.name;
+      const bindName = name.rawName === ':' ? '' : `v-${name.rawName}`;
+      const transformed = transformCallExpression(f.value.expression);
+      filters.push(...extractFilterNamesInCallExpression(f.value.expression));
       fix(context, f, `${bindName}:${boundArg}="${transformed}"`);
     });
   }
@@ -153,10 +169,10 @@ const addMethods = (context, node, filters, localFilters) => {
 };
 
 const fixOptions = (context, node, filters) => {
-  if (node.type === 'MemberExpression' && isThisOptionFilters(node)) {
-    const filterName = node.property.name;
-    filters.push(filterName);
-    fix(context, node, `this.${filterName}`);
+  const optionFilterName = findThisOptionFilters(node);
+  if (optionFilterName) {
+    filters.push(optionFilterName);
+    fix(context, node, `this.${optionFilterName}`);
   }
 
   Object.entries(node).forEach(([key, value]) => {
@@ -197,23 +213,12 @@ const cutLocalFilters = (context, localFilter) => {
   return localfilters;
 };
 
-const findFiltersProps = rootNode => {
-  const vueNode = rootNode.body.find(
-    n =>
-      n.type === 'ExportDefaultDeclaration' &&
-      n.declaration.callee.object.name === 'Vue',
-  );
-  const innerVue = vueNode.declaration.arguments[0].properties;
-
-  return innerVue.find(prop => prop.key.name === 'filters');
-}
-
 const fixPipes = (context, node, filters, localFilters) => {
   traverseInner(context, node.templateBody, filters);
   traverseAttr(context, node.templateBody, filters);
   node.body.forEach(n => fixOptions(context, n, filters));
 
-  const filtersProps = findFiltersProps(node);
+  const filtersProps = findVueProps(node, 'filters');
   localFilters.push(...cutLocalFilters(context, filtersProps));
   resolveImports(context, node, filters, localFilters);
 };

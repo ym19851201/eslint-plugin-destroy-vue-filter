@@ -53,31 +53,39 @@ const transformPipeExpression = expression => {
   return result;
 };
 
-const isThisOptionFilters = memberExp => {
-  if (memberExp.object.type !== 'MemberExpression') {
+const findThisOptionFilters = node => {
+  if (node.type !== 'MemberExpression') {
     return false;
   }
 
-  if (memberExp.object.object.type !== 'MemberExpression') {
+  if (node.object.type !== 'MemberExpression') {
     return false;
   }
 
-  if (memberExp.object.object.object.type !== 'ThisExpression') {
+  if (node.object.object.type !== 'MemberExpression') {
     return false;
   }
 
-  if (memberExp.object.object.property.name !== '$options') {
+  if (node.object.object.object.type !== 'ThisExpression') {
     return false;
   }
 
-  if (memberExp.object.property.name !== 'filters') {
+  if (node.object.object.property.name !== '$options') {
     return false;
   }
 
-  return true;
+  if (node.object.property.name !== 'filters') {
+    return false;
+  }
+
+  return node.property.name;
 };
 
 const findOptionFilters = memberExp => {
+  if (!memberExp) {
+    return false;
+  }
+
   if (memberExp.type !== 'MemberExpression') {
     return false;
   }
@@ -140,11 +148,34 @@ const isNode = nodeLike => {
   return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
 };
 
+const findVueProps = (rootNode, key) => {
+  const vueNode = rootNode.body.find(
+    n =>
+      n.type === 'ExportDefaultDeclaration' &&
+      n.declaration.callee.object.name === 'Vue',
+  );
+  const innerVue = vueNode.declaration.arguments[0].properties;
+
+  return innerVue.find(prop => prop.key.name === key);
+}
+
+const isType = (attr, type) => {
+  const { value } = attr;
+  if (!value) return false;
+
+  const { expression } = value;
+  if (!expression) return false;
+
+  return expression.type === type;
+}
+
 module.exports = {
   transformPipeExpression,
   transformCallExpression,
-  isThisOptionFilters,
+  findThisOptionFilters,
   findOptionFilters,
   extractFilterNamesInCallExpression,
   isNode,
+  findVueProps,
+  isType,
 };

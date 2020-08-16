@@ -5,6 +5,9 @@
     <p>{{ $options.filters.filterA(prop) | localFilterC }}</p>
     <p>{{ prop | localFilterA | filterB }}</p>
     <p>{{ methodFilter(prop) }}</p>
+    <p :id="id | idFilter">XXX</p>
+    <p :id="$options.filters.idFilter2(id) | localIdFilter">XXX</p>
+    <p :id="$options.filters.idFilter3(id)">XXX</p>
   </div>
 </template>
 <script lang="ts">
@@ -23,6 +26,9 @@ export default Vue.extend({
         return acc;
       }, []);
       return texts.join('\n');
+    },
+    localIdFilter(id: string): string {
+      return id.slice(0, 5);
     },
   },
   methods: {

@@ -185,7 +185,7 @@ const optionsCase = {
 const localFilterCase = {
   code: localFilterCode,
   output: localFilterOutput,
-  errors: errors(8),
+  errors: errors(11),
 }
 
 const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase, localFilterCase];
