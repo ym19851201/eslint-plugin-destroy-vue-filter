@@ -148,16 +148,16 @@ const isNode = nodeLike => {
   return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
 };
 
-const findVueProps = (rootNode, key) => {
+const findVueProps = (rootNode, key, vueName = 'Vue') => {
   const vueNode = rootNode.body.find(
     n =>
       n.type === 'ExportDefaultDeclaration' &&
-      n.declaration.callee.object.name === 'Vue',
+      n.declaration.callee.object.name === vueName,
   );
   const innerVue = vueNode.declaration.arguments[0].properties;
 
   return innerVue.find(prop => prop.key.name === key);
-}
+};
 
 const isType = (attr, type) => {
   const { value } = attr;
@@ -167,7 +167,7 @@ const isType = (attr, type) => {
   if (!expression) return false;
 
   return expression.type === type;
-}
+};
 
 module.exports = {
   transformPipeExpression,
