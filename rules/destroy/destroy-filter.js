@@ -11,7 +11,7 @@ const {
   isType,
 } = require('../../utils/transform-filter.js');
 
-const fix = (context, node, result) => {
+const replaceFix = (context, node, result) => {
   context.report({
     node,
     message: 'Vue2 style filters are deprecated',
@@ -27,8 +27,16 @@ const insertFix = (context, node, range, result) => {
   });
 };
 
+const removeRangeFix = (context, node, range) => {
+  context.report({
+    node: node,
+    message: 'Vue2 style filters are deprecated',
+    fix: fixer => fixer.removeRange(range),
+  });
+}
+
 const processFilterSequence = (context, expression, filters) => {
-  fix(context, expression, transformPipeExpression(expression));
+  replaceFix(context, expression, transformPipeExpression(expression));
 
   filters.push(...expression.filters.map(f => f.callee.name));
   if (expression.expression.type === 'CallExpression') {
@@ -37,7 +45,7 @@ const processFilterSequence = (context, expression, filters) => {
 };
 
 const processCallExpression = (context, expression, filters) => {
-  fix(context, expression, transformCallExpression(expression));
+  replaceFix(context, expression, transformCallExpression(expression));
   filters.push(...extractFilterNamesInCallExpression(expression));
 };
 
@@ -160,7 +168,7 @@ const fixOptions = (context, node, filters) => {
   const optionFilterName = findThisOptionFilters(node);
   if (optionFilterName) {
     filters.push(optionFilterName);
-    fix(context, node, `this.${optionFilterName}`);
+    replaceFix(context, node, `this.${optionFilterName}`);
   }
 
   Object.entries(node).forEach(([key, value]) => {
@@ -185,18 +193,13 @@ const cutLocalFilters = (context, localFilter) => {
   const localfilters = localFilter.value.properties;
   const sourceCode = context.getSourceCode();
   const commaLike = sourceCode.getTokenAfter(localFilter);
-  const tmp = sourceCode.getTokenAfter(commaLike);
   const isComma = commaLike.type === 'Punctuator' && commaLike.value === ',';
   const range = [
     localFilter.range[0],
     isComma ? commaLike.range[1] : localFilter.range[1],
   ];
 
-  context.report({
-    node: localFilter,
-    message: 'Vue2 style filters are deprecated',
-    fix: fixer => fixer.removeRange(range),
-  });
+  removeRangeFix(context, localFilter, range);
 
   return localfilters;
 };
