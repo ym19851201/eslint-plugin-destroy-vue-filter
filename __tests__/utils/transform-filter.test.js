@@ -2,6 +2,8 @@ const {
   transformPipeExpression,
   transformCallExpression,
   extractFilterNamesInCallExpression,
+  findVueProps,
+  isType,
 } = require('../../utils/transform-filter.js');
 
 const pipeExpression = require('./pipe.json');
