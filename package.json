@@ -1,19 +1,25 @@
 {
-  "name": "destroy-vue-filter",
+  "name": "eslint-plugin-destroy-vue-filter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "babel src -d lib",
+    "test": "jest ./__tests__/**/*.test.js",
+    "prepublish": "npm run build"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
     "eslint": "^7.6.0",
     "eslint-plugin-vue": "^7.0.0-beta.1",
-    "jest": "^26.2.2",
     "typescript": "^3.9.7"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "jest": "^26.2.2",
+    "jest-cli": "^26.4.0"
   }
 }
