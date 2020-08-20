@@ -1,6 +1,6 @@
 "use strict";
 
-const rule = require("../../rules/destroy/destroy-filter");
+const rule = require("../../src/rules/destroy-filter");
 
 const eslint = require("eslint");
 const RuleTester = eslint.RuleTester;
@@ -170,11 +170,11 @@ export default Vue.extend({
 `
 };
 
-const optionsCode = fs.readFileSync('./__tests__/destroy/options.vue', 'utf8').toString();
-const optionsOutput = fs.readFileSync('./__tests__/destroy/options-result.vue', 'utf8').toString();
+const optionsCode = fs.readFileSync('./__tests__/rules/fixtures/options.vue', 'utf8').toString();
+const optionsOutput = fs.readFileSync('./__tests__/rules/fixtures/options-result.vue', 'utf8').toString();
 
-const localFilterCode = fs.readFileSync('./__tests__/destroy/local-filters.vue', 'utf8').toString();
-const localFilterOutput = fs.readFileSync('./__tests__/destroy/local-filter-result.vue', 'utf8').toString();
+const localFilterCode = fs.readFileSync('./__tests__/rules/fixtures/local-filters.vue', 'utf8').toString();
+const localFilterOutput = fs.readFileSync('./__tests__/rules/fixtures/local-filter-result.vue', 'utf8').toString();
 
 const optionsCase = {
   code: optionsCode,

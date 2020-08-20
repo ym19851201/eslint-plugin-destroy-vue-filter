@@ -9,7 +9,7 @@ const {
   isNode,
   findVueProps,
   isType,
-} = require('../../utils/transform-filter.js');
+} = require('../utils/transform-filter.js');
 
 const replaceFix = (context, node, result) => {
   context.report({
