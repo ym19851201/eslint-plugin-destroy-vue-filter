@@ -4,14 +4,14 @@ const {
   extractFilterNamesInCallExpression,
   findVueProps,
   isType,
-} = require('../../utils/transform-filter.js');
+} = require('../../src/utils/transform-filter.js');
 
-const pipeExpression = require('./pipe.json');
-const mixedExpresstion = require('./mixed.json');
-const callExpresstion = require('./call.json');
-const callComplicatedExpresstion = require('./call-complicated.json');
+const pipeExpression = require('./fixtures/pipe.json');
+const mixedExpresstion = require('./fixtures/mixed.json');
+const callExpresstion = require('./fixtures/call.json');
+const callComplicatedExpresstion = require('./fixtures/call-complicated.json');
 
-const filter = require('./filter-names.json');
+const filter = require('./fixtures/filter-names.json');
 
 describe('transformPipeExpression', () => {
   test('Pipe case', () => {
