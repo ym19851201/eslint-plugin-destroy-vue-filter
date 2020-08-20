@@ -140,7 +140,7 @@ const extractFilterNamesInCallExpression = expression => {
       }
       return acc;
     },
-    [filterName],
+    filterName ? [filterName] : [],
   );
 };
 
@@ -169,6 +169,16 @@ const isType = (attr, type) => {
   return expression.type === type;
 };
 
+const hasOptionFilters = (attr) => {
+  const { value } = attr;
+  if (!value) return false;
+
+  const { expression } = value;
+  if (!expression) return false;
+
+  return findOptionFilters(expression.callee);
+}
+
 module.exports = {
   transformPipeExpression,
   transformCallExpression,
@@ -178,4 +188,5 @@ module.exports = {
   isNode,
   findVueProps,
   isType,
+  hasOptionFilters,
 };

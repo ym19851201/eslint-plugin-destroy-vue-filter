@@ -9,6 +9,7 @@ const {
   isNode,
   findVueProps,
   isType,
+  hasOptionFilters,
 } = require('../utils/transform-filter.js');
 
 const replaceFix = (context, node, result) => {
@@ -49,11 +50,11 @@ const processCallExpression = (context, expression, filters) => {
   filters.push(...extractFilterNamesInCallExpression(expression));
 };
 
-const traverseInner = (context, node, filters) => {
+const fixExpressions = (context, node, filters) => {
   if (!node) return;
   if (node.type !== 'VExpressionContainer') {
     node.children &&
-      node.children.forEach(c => traverseInner(context, c, filters));
+      node.children.forEach(c => fixExpressions(context, c, filters));
     return;
   }
 
@@ -77,10 +78,10 @@ const traverseInner = (context, node, filters) => {
   }
 
   node.children &&
-    node.children.forEach(c => traverseInner(context, c, filters));
+    node.children.forEach(c => fixExpressions(context, c, filters));
 };
 
-const traverseAttr = (context, node, filters) => {
+const fixAttrs = (context, node, filters) => {
   if (!node) return;
 
   if (node.type === 'VElement' && node.startTag) {
@@ -93,7 +94,7 @@ const traverseAttr = (context, node, filters) => {
     });
 
     const callExpressions = node.startTag.attributes.filter(attr =>
-      isType(attr, 'CallExpression'),
+      isType(attr, 'CallExpression') && hasOptionFilters(attr),
     );
 
     callExpressions.forEach(f => {
@@ -102,7 +103,7 @@ const traverseAttr = (context, node, filters) => {
   }
 
   node.children &&
-    node.children.forEach(c => traverseAttr(context, c, filters));
+    node.children.forEach(c => fixAttrs(context, c, filters));
 };
 
 const resolveImports = (context, node, filters, localFilters) => {
@@ -130,39 +131,41 @@ import { ${uniq.join(', ')} } from '${source}';`;
 };
 
 const addMethods = (context, node, filters, localFilters) => {
-  if (filters.length === 0 && localFilters.length === 0) {
-    return;
-  }
-
-  if (node.parent.parent.type !== 'ExportDefaultDeclaration') {
-    return;
-  }
-
-  const withoutLocal = filters.filter(
-    f => !localFilters.find(lf => lf.key.name === f),
-  );
-  const methods = [...new Set(withoutLocal)].sort();
   const sourceCode = context.getSourceCode();
-  const localFilterTexts = localFilters.map(lf => sourceCode.getText(lf));
-  methods.push(...localFilterTexts);
+  const methods = methodsTexts(filters, localFilters, sourceCode);
 
   const methodsKey = node.properties.find(prop => prop.key.name === 'methods');
   if (methodsKey) {
     const currentMethods = methodsKey.value.properties;
     const lastMethod = currentMethods[currentMethods.length - 1];
-    const range = [lastMethod.range[1] + 1, lastMethod.range[1] + 1];
-    const replace = `
+    const range = rangeWithTrailingComma(lastMethod, sourceCode);
+    const insert = `
     ${methods.join(',\n    ')},`;
-    insertFix(context, node, range, replace);
+    context.report({
+      node,
+      message: 'Vue2 style filters are deprecated',
+      fix: fixer => fixer.insertTextAfterRange(range, insert),
+    });
   } else {
     const methodBlock = `  methods: {
     ${methods.join(',\n    ')},
   },
 `;
-    const range = [node.range[1] - 1, node.range[1]];
-    insertFix(context, node, range, methodBlock);
+    const lastToken = context.getSourceCode().getLastToken(node);
+    insertFix(context, node, lastToken.range, methodBlock);
   }
 };
+
+const methodsTexts = (filters, localFilters, sourceCode) => {
+  const localRemoved = filters.filter(
+    f => !localFilters.find(lf => lf.key.name === f),
+  );
+  const methods = [...new Set(localRemoved)].sort();
+  const localFilterTexts = localFilters.map(lf => sourceCode.getText(lf));
+  methods.push(...localFilterTexts);
+
+  return methods;
+}
 
 const fixOptions = (context, node, filters) => {
   const optionFilterName = findThisOptionFilters(node);
@@ -185,33 +188,30 @@ const fixOptions = (context, node, filters) => {
   });
 };
 
-const cutLocalFilters = (context, localFilter) => {
-  if (!localFilter) {
-    return [];
-  }
-
-  const localfilters = localFilter.value.properties;
-  const sourceCode = context.getSourceCode();
-  const commaLike = sourceCode.getTokenAfter(localFilter);
+const rangeWithTrailingComma = (node, sourceCode) => {
+  const commaLike = sourceCode.getTokenAfter(node);
   const isComma = commaLike.type === 'Punctuator' && commaLike.value === ',';
-  const range = [
-    localFilter.range[0],
-    isComma ? commaLike.range[1] : localFilter.range[1],
+
+  return [
+    node.range[0],
+    isComma ? commaLike.range[1] : node.range[1],
   ];
+}
 
-  removeRangeFix(context, localFilter, range);
-
-  return localfilters;
+const fixFilters = (context, node, filters) => {
+  fixExpressions(context, node.templateBody, filters);
+  fixAttrs(context, node.templateBody, filters);
+  node.body.forEach(n => fixOptions(context, n, filters));
 };
 
-const fixPipes = (context, node, filters, localFilters) => {
-  traverseInner(context, node.templateBody, filters);
-  traverseAttr(context, node.templateBody, filters);
-  node.body.forEach(n => fixOptions(context, n, filters));
+const cutLocalFilters = (context, node) => {
+  const localFilters = node.value.properties;
+  const sourceCode = context.getSourceCode();
 
-  const filtersProps = findVueProps(node, 'filters');
-  localFilters.push(...cutLocalFilters(context, filtersProps));
-  resolveImports(context, node, filters, localFilters);
+  const range = rangeWithTrailingComma(node, sourceCode);
+  removeRangeFix(context, node, range);
+
+  return localFilters;
 };
 
 module.exports = {
@@ -219,12 +219,30 @@ module.exports = {
   create(context) {
     const filters = [];
     const localFilters = [];
+    const vueSelector = 'CallExpression[callee.object.name="Vue"][callee.property.name="extend"]';
+    const innerVue = 'ObjectExpression';
+    const methodsSelector = 'Property[key.name="methods"]'
+    const filtersSelector = 'Property[key.name="filters"]'
+
+    const props = `${[vueSelector, innerVue].join('>')}:exit`;
+    const methods = [vueSelector, innerVue, methodsSelector].join('>');
+    const filtersKey = [vueSelector, innerVue, filtersSelector].join('>');
+
     return {
       Program: node => {
-        fixPipes(context, node, filters, localFilters);
+        fixFilters(context, node, filters);
       },
-      ObjectExpression: node => {
+      'Program:exit': node => {
+        resolveImports(context, node, filters, localFilters);
+      },
+      [props]: node => {
+        if (filters.length === 0 && localFilters.length === 0) {
+          return;
+        }
         addMethods(context, node, filters, localFilters);
+      },
+      [filtersKey]: node => {
+        localFilters.push(...cutLocalFilters(context, node));
       },
     };
   },
