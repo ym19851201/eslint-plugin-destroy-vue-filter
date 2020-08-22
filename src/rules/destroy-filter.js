@@ -7,32 +7,39 @@ const {
   findOptionFilters,
   extractFilterNamesInCallExpression,
   isNode,
-  findVueProps,
-  isType,
-  hasOptionFilters,
+  attrHasType,
+  attrHasOptionFilters,
 } = require('../utils/transform-filter.js');
 
-const replaceFix = (context, node, result) => {
+const replaceFix = (context, node, replace) => {
   context.report({
     node,
     message: 'Vue2 style filters are deprecated',
-    fix: fixer => fixer.replaceText(node, result),
+    fix: fixer => fixer.replaceText(node, replace),
   });
 };
 
-const insertFix = (context, node, range, result) => {
+const insertFix = (context, node, range, insert) => {
   context.report({
     node,
     message: 'Vue2 style filters are deprecated',
-    fix: fixer => fixer.insertTextBeforeRange(range, result),
+    fix: fixer => fixer.insertTextBeforeRange(range, insert),
   });
 };
 
 const removeRangeFix = (context, node, range) => {
   context.report({
-    node: node,
+    node,
     message: 'Vue2 style filters are deprecated',
     fix: fixer => fixer.removeRange(range),
+  });
+}
+
+const insertAfterFix = (context, node, prev, insert) => {
+  context.report({
+    node,
+    message: 'Vue2 style filters are deprecated',
+    fix: fixer => fixer.insertTextAfter(prev, insert),
   });
 }
 
@@ -86,7 +93,7 @@ const fixAttrs = (context, node, filters) => {
 
   if (node.type === 'VElement' && node.startTag) {
     const filterExpressions = node.startTag.attributes.filter(attr =>
-      isType(attr, 'VFilterSequenceExpression'),
+      attrHasType(attr, 'VFilterSequenceExpression'),
     );
 
     filterExpressions.forEach(f => {
@@ -94,7 +101,7 @@ const fixAttrs = (context, node, filters) => {
     });
 
     const callExpressions = node.startTag.attributes.filter(attr =>
-      isType(attr, 'CallExpression') && hasOptionFilters(attr),
+      attrHasType(attr, 'CallExpression') && attrHasOptionFilters(attr),
     );
 
     callExpressions.forEach(f => {
@@ -123,11 +130,7 @@ const resolveImports = (context, node, filters, localFilters) => {
   const replace = `
 import { ${uniq.join(', ')} } from '${source}';`;
 
-  context.report({
-    node,
-    message: 'Vue2 style filters are deprecated',
-    fix: fixer => fixer.insertTextAfter(last, replace),
-  });
+  insertAfterFix(context, node, last, replace);
 };
 
 const addMethods = (context, node, filters, localFilters) => {

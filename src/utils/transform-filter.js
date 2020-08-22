@@ -148,18 +148,7 @@ const isNode = nodeLike => {
   return nodeLike && nodeLike.type && nodeLike.loc && nodeLike.range;
 };
 
-const findVueProps = (rootNode, key, vueName = 'Vue') => {
-  const vueNode = rootNode.body.find(
-    n =>
-      n.type === 'ExportDefaultDeclaration' &&
-      n.declaration.callee.object.name === vueName,
-  );
-  const innerVue = vueNode.declaration.arguments[0].properties;
-
-  return innerVue.find(prop => prop.key.name === key);
-};
-
-const isType = (attr, type) => {
+const attrHasType = (attr, type) => {
   const { value } = attr;
   if (!value) return false;
 
@@ -169,7 +158,7 @@ const isType = (attr, type) => {
   return expression.type === type;
 };
 
-const hasOptionFilters = (attr) => {
+const attrHasOptionFilters = (attr) => {
   const { value } = attr;
   if (!value) return false;
 
@@ -186,7 +175,6 @@ module.exports = {
   findOptionFilters,
   extractFilterNamesInCallExpression,
   isNode,
-  findVueProps,
-  isType,
-  hasOptionFilters,
+  attrHasType,
+  attrHasOptionFilters,
 };
