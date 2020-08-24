@@ -223,13 +223,15 @@ module.exports = {
     const filters = [];
     const localFilters = [];
     const vueSelector = 'CallExpression[callee.object.name="Vue"][callee.property.name="extend"]';
+    const mixinSelector = 'CallExpression[callee.object.callee.name="mixins"][callee.property.name="extend"]';
+    const topSelector = `:matches(${[vueSelector, mixinSelector].join(',')})`;
     const innerVue = 'ObjectExpression';
     const methodsSelector = 'Property[key.name="methods"]'
     const filtersSelector = 'Property[key.name="filters"]'
 
-    const props = `${[vueSelector, innerVue].join('>')}:exit`;
-    const methods = [vueSelector, innerVue, methodsSelector].join('>');
-    const filtersKey = [vueSelector, innerVue, filtersSelector].join('>');
+    const props = `${[topSelector, innerVue].join('>')}:exit`;
+    const methods = [topSelector, innerVue, methodsSelector].join('>');
+    const filtersKey = [topSelector, innerVue, filtersSelector].join('>');
 
     return {
       Program: node => {

@@ -176,6 +176,9 @@ const optionsOutput = fs.readFileSync('./__tests__/rules/fixtures/options-result
 const localFilterCode = fs.readFileSync('./__tests__/rules/fixtures/local-filters.vue', 'utf8').toString();
 const localFilterOutput = fs.readFileSync('./__tests__/rules/fixtures/local-filter-result.vue', 'utf8').toString();
 
+const mixinCode = fs.readFileSync('./__tests__/rules/fixtures/mixin-case.vue', 'utf8').toString();
+const mixinOutput = fs.readFileSync('./__tests__/rules/fixtures/mixin-case-result.vue', 'utf8').toString();
+
 const optionsCase = {
   code: optionsCode,
   output: optionsOutput,
@@ -188,6 +191,12 @@ const localFilterCase = {
   errors: errors(11),
 }
 
-const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase, localFilterCase];
+const mixinCase = {
+  code: mixinCode,
+  output: mixinOutput,
+  errors: errors(4),
+}
+
+const invalid = [multiFilter, filterWithArg, deluxePattern, optionsCase, localFilterCase, mixinCase];
 
 ruleTester.run("destroy-filter", rule, { valid, invalid });
