@@ -2,6 +2,18 @@
 
 This plugin consisted of 3 rules converts Vue global filter settings into exports.
 
+## Target
+- Those who want to automatically migrate pre-Vue2 code using filters to Vue3 as a transition period to the composition API
+- Code written in options API
+- Those who have registered global filters in one file
+
+## Unsupported case
+Sorry, this plugin won't work if you use filters like below
+
+- `const { filterX } = this.$options.filters`
+- `const { filters } = this.$options`
+- `const { $options } = this`
+
 ## Phase 1.
 Convert global filter 
 
